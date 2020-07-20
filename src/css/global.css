@@ -1,0 +1,33 @@
+.table-is-centered {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.table-text-column {
+    width: 325px;
+}
+
+.table-number-column {
+    width: 95px;
+}
+
+.custom-section-margin {
+    margin: 25px;
+}
+
+.input-wide {
+    width: 250px;
+}
+
+.input-wider {
+    width: 300px;
+}
+
+.currency {
+    text-align: right;
+}
+
+.currency:before {
+    content: 'R';
+    float: left;
+}

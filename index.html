@@ -1,0 +1,442 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>SwiftInvoice</title>
+    <link rel="stylesheet" href="src/css/font-awesome.css">
+    <link rel="stylesheet" href="node_modules/bulma/css/bulma.css">
+    <link rel="stylesheet" href="src/css/global.css">
+</head>
+
+<body>
+
+    <div id="main">
+        <tabs type="is-boxed">
+            <tab icon="fa fa-file" name="Create New Invoice" selected="true">
+                <section class="section">
+
+                    <div class="columns">
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Client Name</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="XYZ (Pty) Ltd" id="client_name">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Client Email</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="example@example.com" id="client_email">
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Client Address Line 1</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="123 ABC Lane" id="client_address_line1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Client Address Line 2</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="XYZ Plaza" id="client_address_line2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Postal Code</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="XXXX" id="client_address_line3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">City</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="Johannesburg" id="client_address_line4">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="columns">
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Invoice Number</label>
+                                <div class="control"><input type="text" class="input" placeholder="INV001" id="invoice_number"></div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Date Of Invoice</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="Select Date..." id="invoice_date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">Invoice Payment Due</label>
+                                <div class="control">
+                                    <input type="text" class="input" placeholder="Select Date..." id="invoice_due_date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="column">
+                            <div class="field">
+                                <label class="label">VAT on Invoice?</label>
+                                <div class="control">
+                                    <div class="select">
+                                        <select v-model="invoice_vat_status">
+                                            <option>Calculate VAT</option>
+                                            <option>Do Not Calculate VAT</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="table is-striped table-is-centered">
+                        <thead>
+                            <tr>
+                                <th class="table-text-column">Item/Service Description</th>
+                                <th class="table-number-column has-text-right">Quantity</th>
+                                <th class="table-number-column has-text-right">Unit Price</th>
+                                <th class="table-number-column has-text-right total_excl">Total excl.</th>
+                                <th class="table-number-column has-text-right line_vat">VAT</th>
+                                <th class="table-number-column has-text-right">Total</th>
+                                <th class="table-number-column has-text-right">Delete Row</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in lineitems" track-by="index">
+                                <td><input type="text" class="input is-small" v-model="item.description" placeholder="Description"></td>
+                                <td><input type="number" class="input is-small" v-model="item.quantity" placeholder="Quantity"></td>
+                                <td><input type="number" class="input is-small" v-model="item.unit_price" placeholder="Price"></td>
+                                <td class="currency total_excl"> {{ totalExcLineItem[index] | formatAsCurrency }} </td>
+                                <td class="currency line_vat"> {{ vatLineItem[index] | formatAsCurrency }} </td>
+                                <td class="currency"> {{ totalLineItem[index] | formatAsCurrency }} </td>
+                                <td><button class="button is-small is-danger is-pulled-right" @click="deleteLineItem(index)">Delete</button></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="has-text-right" v-bind:colspan="colspans" id="invoice_total_vat_row">Total VAT @ 14%:</td>
+                                <td colspan="1" class="currency"> {{ invoiceVAT | formatAsCurrency }} </td>
+                            </tr>
+                            <tr>
+                                <td class="has-text-right" v-bind:colspan="colspans" id="invoice_total_row">Invoice Total:</td>
+                                <td colspan="1" class="currency"> {{ invoiceTotal | formatAsCurrency }} </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="field is-grouped is-grouped-right">
+                        <div class="control">
+                            <button class="button is-primary" @click="addLineItem">New Row</button>
+                            <button class="button is-success" @click="saveInvoice">Save Invoice</button>
+                            <button class="button is-success">Save and Email</button>
+                        </div>
+                    </div>
+                </section>
+            </tab>
+
+            <tab icon="fa fa-archive" name="View Invoices">
+                
+                <table class="table table-center" id="invoicelist">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Invoice Date</th>
+                            <th>Invoice Due Date</th>
+                            <th>Invoice Number</th>
+                            <th>Invoice Total</th>
+                            <th>Amount Paid</th>
+                            <th>Add Payment</th>
+                            <th>Amount Outstanding</th>
+                            <th>Create PDF</th>
+                            <th>Delete Invoice?</th>
+                        </tr>
+                        <tbody>
+                            <tr v-for="(invoice, index) in invoices_list" track-by="index">
+                                <td>{{ invoice[index].doc.clientname }}</td>
+                                <td>{{ invoice[index].doc.invoicedate }}</td>
+                                <td>{{ invoice[index].doc.invoiceduedate }}</td>
+                                <td>{{ invoice[index].doc._id }}</td>
+                                <td>{{ invoice[index].doc.invoicetotal | formatAsCurrency }}</td>
+                                <td>{{ invoice[index].doc.invoicebalance | formatAsCurrency }}</td>
+                                <td><input type="number" class="input is-small" v-model="invoices_payments[index]" @keyup.enter="addPayment(index)"> </td>
+                                <td>{{ invoice[index].doc.invoicebalance | formatAsCurrency }}</td>
+                                <td><button class="button is-primary is-small" @click="createPDF(index)">Create PDF</button></td>
+                                <td><button class="button is-danger is-small" @click="deleteInvoice(index)">Delete</button></td>
+                            </tr>
+                        </tbody>
+                </table>
+                
+            </tab>
+
+<!--            <tab icon="fa fa-address-book-o" name="Client Database"></tab>-->
+
+            <tab icon="fa fa-cogs" name="Settings">
+
+                <tabs type="is-toggle">
+                    <tab name="Invoice Settings" icon="fa fa-cog">
+                        <section class="section is-paddingless custom-section-margin">
+
+                            <h3 class="title">General Settings</h3>
+
+                            <div class="columns">
+
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Invoice Number Prefix</label>
+                                        <div class="control">
+                                            <input type="text" class="input" id="invoice_number_prefix">
+                                        </div>
+                                        <p class="help">This will be the prefix displayed in front of your invoice numbers (e.g. "INV001", "INV002", etc).</p>
+                                    </div>
+                                </div>
+
+                                <div class="column">
+                                    <label class="label">Payment Terms</label>
+                                    <div class="field has-addons">
+                                        <div class="control">
+                                            <input type="number" class="input" id="payment_terms">
+                                        </div>
+                                        <div class="control">
+                                            <button class="button is-static">days</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Invoice Date Format</label>
+                                        <div class="control">
+                                            <div class="select">
+                                                <select id="date_setting" class="input-wider">
+                                                        <option>Weekday, Month Day Year</option>
+                                                        <option>Day/Month/Year</option>
+                                                        <option>Month Day Year</option>
+                                                    </select>
+                                            </div>
+                                            <p class="help">Example formats here</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">PDF Export Directory</label>
+                                        <div class="control">
+                                            <button class="button is-info">Select Directory</button>
+                                        </div>
+                                        <p class="help">Choose where to save your invoice PDF copies to.</p>
+                                        <p class="help">Invoice PDFs are currently sent to:</p>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+
+                            <h4 class="title">Line Items</h4>
+                            <h4 class="subtitle">Customize what is displayed on the "Create New Invoice" page.</h4>
+
+                            <div class="content">
+
+                                <h3 class="title">Display Settings</h3>
+                                <label class="checkbox">
+                                <input type="checkbox" class="checkbox" v-model="display_line_item_exc" id="line_item_exc_box">
+                                Display line item total excluding VAT
+                                </label><br>
+
+                                <!--                                <a href="mailto:email">Email</a>-->
+                                <label class="checkbox">
+                                <input type="checkbox" class="checkbox" v-model="display_line_item_vat" id="line_item_vat_box">
+                                Display line item VAT
+                                </label><br>
+
+                                <!--Eventually:                                <p>Currency Symbol</p>-->
+
+                                <label class="checkbox">
+                               <input type="checkbox" class="checkbox" v-model="display_due_date_pdf" id="display_due_date_box">
+                               Display invoice due date on invoice PDF?
+                               </label>
+                            </div>
+
+
+                            <button class="button is-success is-pulled-right">Save Settings</button>
+
+                        </section>
+                    </tab>
+
+                    <tab name="Company Information" icon="fa fa-cog">
+
+
+                        <section class="section is-paddingless custom-section-margin">
+                            <h4 class="title">Contact Information</h4>
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">E-mail Address</label>
+                                        <input type="text" class="input" placeholder="example@example.com">
+                                    </div>
+                                </div>
+
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Phone Number</label>
+                                        <input type="text" class="input" placeholder="XXX-XXXX-XXXX">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="section is-paddingless custom-section-margin">
+                            <h4 class="title">Physical Address</h4>
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Address Line 1</label>
+                                        <input type="text" class="input" placeholder="123 ABC Street"></div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Address Line 2</label>
+                                        <input type="text" class="input" placeholder="XYZ Plaza">
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Suburb</label>
+                                        <input type="text" class="input" placeholder="Rosebank">
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Postal Code</label>
+                                        <input type="text" class="input" placeholder="2196">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="section is-paddingless custom-section-margin">
+                            <h4 class="title">Banking Details</h4>
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Bank</label>
+                                        <input type="text" class="input" placeholder="e.g. FNB, ABSA, etc..">
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Account Name</label>
+                                        <input type="text" class="input" placeholder="XYZ (Pty) Ltd"></div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Account Type</label>
+                                        <input type="text" class="input" placeholder="Business Banking Account"></div>
+                                </div>
+                            </div>
+
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Account Number</label>
+                                        <input type="text" class="input" placeholder="XXXXXXXXXXX">
+                                        <p class="help">Spaces are allowed.</p>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Branch Name</label>
+                                        <input type="text" class="input" placeholder="XYZ">
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Branch Code</label>
+                                        <input type="text" class="input" placeholder="XXXXXX">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="section is-paddingless custom-section-margin">
+                            <h4 class="title">Tax Information</h4>
+                            <div class="columns">
+
+                                <div class="column">
+                                    <label class="label">Company Registration Number</label>
+                                    <input type="text" class="input" placeholder="2010/XXXXXX...">
+                                </div>
+
+                                <div class="column">
+                                    <label class="label">Company VAT Number (if Applicable)</label>
+                                    <input type="text" class="input" placeholder="4XXXXXXX...">
+                                </div>
+
+                            </div>
+
+                            <div class="field is-grouped is-grouped-right">
+                                <button class="button is-success">Save Information</button>
+                            </div>
+
+                        </section>
+
+                    </tab>
+
+                    <tab name="Reminders" icon="fa fa-cog">
+                        <section class="section is-paddingless custom-section-margin">
+                            <h4 class="title">Reminder Settings</h4>
+
+                            <div class="content">
+                                <p>Once an invoice is created and its payments are overdue, remind me:</p>
+                                <p>Every day </p>
+                                <p>Do not remind me at all </p>
+                            </div>
+
+
+                        </section>
+                    </tab>
+
+
+                </tabs>
+
+
+            </tab>
+
+        </tabs>
+
+    </div>
+
+</body>
+<script src="src/js/pouchdb-6.3.4.js"></script>
+<script src="src/js/pouchdb.upsert.js"></script>
+<script src="src/js/main.js"></script>
+
+</html>

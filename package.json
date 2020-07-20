@@ -1,0 +1,38 @@
+{
+  "name": "swiftinvoicegeneric",
+  "productName": "SwiftInvoice Generic",
+  "version": "1.0.0",
+  "description": "Generic version of SwiftInvoice",
+  "author": {
+    "name": "",
+    "email": ""
+  },
+  "scripts": {
+    "test": "xo",
+    "start": "electron .",
+    "build": "electron-packager . --out=release-builds --asar=true --overwrite --platform=win32 --arch=ia32"
+  },
+  "dependencies": {
+    "accounting": "^0.4.1",
+    "bulma": "^0.5.2",
+    "electron-debug": "^1.0.0",
+    "html-pdf": "^2.1.0",
+    "jquery": "^3.2.1",
+    "moment": "^2.18.1",
+    "pikaday": "^1.6.1",
+    "vue": "^2.4.3"
+  },
+  "devDependencies": {
+    "devtron": "^1.1.0",
+    "electron": "^7.2.4",
+    "electron-packager": "^8.0.0",
+    "electron-rebuild": "^1.6.0",
+    "xo": "^0.18.0"
+  },
+  "xo": {
+    "envs": [
+      "node",
+      "browser"
+    ]
+  }
+}
